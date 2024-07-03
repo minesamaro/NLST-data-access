@@ -1,6 +1,6 @@
 # NLST Accessing Script
 
-This documentation is under development. For more clarification, see the "Contact Me" page
+This documentation is under development. For more details, access documentation @[GitPage Documentation ](https://minesamaro.github.io/NLST-data-access/)
 
 
 ## Overview
