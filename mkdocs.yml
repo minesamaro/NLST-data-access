@@ -2,13 +2,13 @@ site_name: NLST Data Accessing API Documentation
 
 nav:
   - Home: index.md
-  - API Documentation:
+  - Documentation:
       - NLST Data Accessing: api/NLST_data_accessing.md
-      - Get PID Paths: api/get_pid_paths.md
-      - Get Study Year Series: api/get_study_yr_series.md
-      - Get Slice Paths: api/get_slice_paths.md
-      - Get Preference Rank: api/get_preference_rank.md
-      - Process DICOM Files: api/process_dicom_files.md
+      - get_pid_paths: api/get_pid_paths.md
+      - get_study_yr_series: api/get_study_yr_series.md
+      - get_slice_paths: api/get_slice_paths.md
+      - get_preference_rank: api/get_preference_rank.md
+      - process_dicom_files: api/process_dicom_files.md
   - Contact Me: contact.md
 
 theme:

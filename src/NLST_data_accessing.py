@@ -19,7 +19,7 @@ Arguments:
                              Possible values are 'slice' and 'folder'. Other values will be replaced by 'slice'.
                              Default is 'slice'.
 
-Actions:
+Returns:
     Saves CSV file with the paths to the slices or folders with the abnormalities in the abnormalities data CSV and information about the manufacturer, kernel, series number and slice thickness.
     Colummns in the saved CSV file:
         - pid: Patient ID.
@@ -35,7 +35,7 @@ Actions:
         - slice_thickness: Thickness of the slice.
         - slice_not_found: Flag to indicate if the slice is not found in the NLST data.
         - wrong_slice_annotation: Flag to indicate if the slice number in the path is different from the expected slice number. 
-        !!!warning " It is recommended not to use data where wrong_slice_annotation is True, as the dataset annotations might be wrong."
+        !!! warning " It is recommended not to use data where wrong_slice_annotation is True, as the dataset annotations might be wrong."
 
 
                              
@@ -61,7 +61,7 @@ def get_pid_paths(pid, data_path):
         data_path (str): Path to the NLST data folder.
 
     Returns:
-        list: List of paths to the patient's folders.
+        folders (list): List of paths to the patient's folders.
         None: If the patient is not found.
 
     """
@@ -86,7 +86,7 @@ def get_study_yr_series(study_yr, folders):
         folders (list): List of folders.
 
     Returns:
-        list: List of series folders.
+        series_folders (list): List of series folders.
         None: If the study year is not found.
     """
     # Get the folder with the study year
@@ -106,7 +106,7 @@ def get_slice_paths(series_folders, sct_slice_num):
         sct_slice_num (int): Slice number.
 
     Returns:
-        list: List of paths to the slices in all the series folders (some may not exist)
+        slice_paths (list): List of paths to the slices in all the series folders (some may not exist)
     """
     # Go to each series folder and get the slice with the sct_slice_num
     slice_paths =[] 
@@ -156,7 +156,7 @@ def process_dicom_files(dicom_files, slice_or_folder, slice_num_in_path = None):
         slice_num_in_path (int, optional): Slice number in the path. Defaults to None.
 
     Returns:
-        pd.Series: Series containing information about the best DICOM file.
+        best_file_s (pd.Series): Series containing information about the best DICOM file.
         Columns: path, manufacturer, kernel, series_number, not_found, slice_thickness, wrong_slice_annotation (if slice_or_folder is 'slice')
         
     """
