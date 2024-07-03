@@ -3,3 +3,4 @@ mkdocs
 mkdocs-material
 mkdocstrings-python
 mkdocstrings_handlers
+mkdocs-markdownextradata-plugin
