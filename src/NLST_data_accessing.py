@@ -1,30 +1,49 @@
 """
-Script to process DICOM files and extract paths to slices or folders with abnormalities.
+Script to process csv abnormalities of the NLST dataset and extract paths to slices or folders with abnormalities.
 
-This script takes a CSV file with patient IDs (pids), study years, and slice numbers, processes the DICOM files
+This script takes a CSV file with patient IDs (pids), study year, abnormality description and slice numbers (if 2D slice wanted), processes the available NLST data
 to find the best slice or folder for each patient, and saves the results to a specified CSV file.
 
 Usage:
-    python script_name.py --df <path_to_csv> --save <path_to_save_csv> --NLST_data_path <path_to_NLST_data> --slice_or_folder <slice_or_folder_flag>
+    python script_name.py --df 'path_to_csv' --save 'path_to_save_csv' --NLST_data_path 'path_to_NLST_data' --slice_or_folder 'slice_or_folder_flag'
 
 Arguments:
-    --df (str): Path to the CSV file with the pids and study years of the abnormalities reported.
+    --df (str): Path to the CSV file with the pids and study years of the abnormalities reported. (REQUIRED)
                 Required columns: pid, study_yr, sct_slice_num, sct_ab_desc.
+                e.g. 'dbs/participant_data.csv'
     --save (str): Path to the CSV file where the paths information will be saved.
                   Default is 'path_df.csv' in the current working directory.
     --NLST_data_path (str): Path to the folder where the NLST data is stored.
-                            Default is '/nas-ctm01/sas-storage/data01/NLST'.
+                            Default is the SLURM folder'/nas-ctm01/sas-storage/data01/NLST'.
     --slice_or_folder (str): Flag to indicate if the script should return the paths to the slices or to the folders.
-                             Possible values are 'slice' and 'folder'.
+                             Possible values are 'slice' and 'folder'. Other values will be replaced by 'slice'.
                              Default is 'slice'.
 
-Example:
-    python script_name.py --df participant_data.csv --save results.csv --NLST_data_path /path/to/data --slice_or_folder slice
+Actions:
+    Saves CSV file with the paths to the slices or folders with the abnormalities in the abnormalities data CSV and information about the manufacturer, kernel, series number and slice thickness.
+    Colummns in the saved CSV file:
+        - pid: Patient ID.
+        - study_yr: Study year.
+        - sct_slice_num: Slice number (if present).
+        - sct_ab_desc: Abnormality description.
+        - patient_not_found: Flag to indicate if the patient is not found in the NLST data.
+        - study_yr_not_found: Flag to indicate if the study year is not found in the NLST data for that patient.
+        - path: Path to the slice or folder with the abnormality.
+        - manufacturer: Manufacturer of the CT scanner.
+        - kernel: Convolution kernel used for the reconstruction.
+        - series_number: Series number of the slice.
+        - slice_thickness: Thickness of the slice.
+        - slice_not_found: Flag to indicate if the slice is not found in the NLST data.
+        - wrong_slice_annotation: Flag to indicate if the slice number in the path is different from the expected slice number. 
+        !!!warning " It is recommended not to use data where wrong_slice_annotation is True, as the dataset annotations might be wrong."
 
----
-markdown:
-    filename: NLST_data_accessing.md
-    section: main
+
+                             
+Example:
+    python script_name.py --df 'participant_data.csv' --save 'results.csv' --NLST_data_path '/path/to/data' --slice_or_folder 'slice'
+    
+    Or using the default values while in SLURM environment:
+    python script_name.py --df 'participant_data.csv'
     
 """
 
@@ -39,10 +58,11 @@ def get_pid_paths(pid, data_path):
 
     Args:
         pid (str): Patient ID.
-        data_path (str): Path to the data folder.
+        data_path (str): Path to the NLST data folder.
 
     Returns:
         list: List of paths to the patient's folders.
+        None: If the patient is not found.
 
     """
     # Get the path of the patient with pid
@@ -59,6 +79,7 @@ def get_pid_paths(pid, data_path):
 def get_study_yr_series(study_yr, folders):
     """
     Get the series folders for the specified study year.
+    These refer to the folders of the examinations made in the wanted study year.
 
     Args:
         study_yr (int): Study year.
@@ -66,6 +87,7 @@ def get_study_yr_series(study_yr, folders):
 
     Returns:
         list: List of series folders.
+        None: If the study year is not found.
     """
     # Get the folder with the study year
     study_folder = [folder for folder in folders if f'01-02-{1999 + study_yr}' in folder]
@@ -84,7 +106,7 @@ def get_slice_paths(series_folders, sct_slice_num):
         sct_slice_num (int): Slice number.
 
     Returns:
-        list: List of paths to the slices.
+        list: List of paths to the slices in all the series folders (some may not exist)
     """
     # Go to each series folder and get the slice with the sct_slice_num
     slice_paths =[] 
@@ -97,6 +119,12 @@ def get_slice_paths(series_folders, sct_slice_num):
 def get_preference_rank(manufacturer, kernel):
     """
     Get the preference rank of the convolution kernel for a manufacturer.
+    Based on the paper Suplementary Information from the paper by Ardila et al. "End-to-end lung cancer screening with three-dimensional deep learning 
+    on low-dose chest computed tomography" Nat Med 25, 954–961 (2019). https://doi.org/10.1038/s41591-019-0447-x
+
+    The preference rank defines the preference of the reconstruction kernel for each manufacturer, based on harder kernels commonly used in lung imaging in medical practise.
+
+    Higher rank means the kernel is less preferred.
 
     Args:
         manufacturer (str): Manufacturer name.
@@ -129,6 +157,8 @@ def process_dicom_files(dicom_files, slice_or_folder, slice_num_in_path = None):
 
     Returns:
         pd.Series: Series containing information about the best DICOM file.
+        Columns: path, manufacturer, kernel, series_number, not_found, slice_thickness, wrong_slice_annotation (if slice_or_folder is 'slice')
+        
     """
     # Store the data about the best file in a Series
     best_file_s = pd.Series()
