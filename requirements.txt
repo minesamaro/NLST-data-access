@@ -1,1 +1,4 @@
 mkdocstrings
+mkdocs
+mkdocs-material
+mkdocstrings-python
