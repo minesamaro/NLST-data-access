@@ -7,6 +7,8 @@ This documentation is under development. For more details, access documentation 
 
 This script processes DICOM files to extract paths to slices or folders containing abnormalities based on specified criteria. It takes input from a CSV file containing patient IDs (pids), study years, and slice numbers, and saves the results to another CSV file.
 
+![NLST data accessing (1)](https://github.com/minesamaro/NLST-data-access/assets/87450213/7d8c89e1-0843-4d2c-9c05-f52ec3386332)
+
 ## Usage
 
 ### Arguments
